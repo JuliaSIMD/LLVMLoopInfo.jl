@@ -74,19 +74,32 @@ if Base.JLOptions().check_bounds != 1
     r"call <8 x double> @llvm.masked.load.v8f64.p0v8f64",
     str
   ) == 2
+  if Base.libllvm_version >= v"14"
+    InteractiveUtils.code_llvm(
+      io,
+      noudot,
+      Tuple{Vector{Float64},Vector{Float64}}
+    )
+    stru = String(take!(io))
+    @test !occursin(r"call <8 x double> @llvm.masked.load.v8f64.p0v8f64", stru)
+    @test numoccurences(r" = load <[0-9] x double>", stru) == 2
 
-  InteractiveUtils.code_llvm(io, noudot, Tuple{Vector{Float64},Vector{Float64}})
-  stru = String(take!(io))
-  @test !occursin(r"call <8 x double> @llvm.masked.load.v8f64.p0v8f64", stru)
-  @test numoccurences(r" = load <[0-9] x double>", stru) == 2
+    InteractiveUtils.code_llvm(
+      io,
+      u1dot,
+      Tuple{Vector{Float64},Vector{Float64}}
+    )
+    stru = String(take!(io))
+    @test !occursin(r"call <8 x double> @llvm.masked.load.v8f64.p0v8f64", stru)
+    @test numoccurences(r" = load <[0-9] x double>", stru) == 2
 
-  InteractiveUtils.code_llvm(io, u1dot, Tuple{Vector{Float64},Vector{Float64}})
-  stru = String(take!(io))
-  @test !occursin(r"call <8 x double> @llvm.masked.load.v8f64.p0v8f64", stru)
-  @test numoccurences(r" = load <[0-9] x double>", stru) == 2
-
-  InteractiveUtils.code_llvm(io, u2dot, Tuple{Vector{Float64},Vector{Float64}})
-  stru = String(take!(io))
-  @test !occursin(r"call <8 x double> @llvm.masked.load.v8f64.p0v8f64", stru)
-  @test numoccurences(r" = load <[0-9] x double>", stru) == 4
+    InteractiveUtils.code_llvm(
+      io,
+      u2dot,
+      Tuple{Vector{Float64},Vector{Float64}}
+    )
+    stru = String(take!(io))
+    @test !occursin(r"call <8 x double> @llvm.masked.load.v8f64.p0v8f64", stru)
+    @test numoccurences(r" = load <[0-9] x double>", stru) == 4
+  end
 end
