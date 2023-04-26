@@ -1,6 +1,5 @@
-using LLVMLoopInfo
-using Test
+using LLVMLoopInfo, PerformanceTestTools, Test
 
 @testset "LLVMLoopInfo.jl" begin
-    # Write your tests here.
+  PerformanceTestTools.@include("vectorization_tests.jl")
 end

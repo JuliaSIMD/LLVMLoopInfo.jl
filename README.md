@@ -42,7 +42,7 @@ function vpdot(x,y)
 end
 function v8dot(x,y)
   s = zero(Base.promote_eltype(x,y))
-  # generate single loop body and mask it
+  # use a 8 elements/SIMD vector
   @loopinfo vectorwidth=8 for i = eachindex(x,y)
     @inbounds @fastmath s += x[i]*y[i]
   end
@@ -66,7 +66,7 @@ function u1dot(x,y)
 end
 function udot(x,y)
   s = zero(Base.promote_eltype(x,y))
-  # don't unroll
+  # unroll
   @loopinfo unroll for i = eachindex(x,y)
     @fastmath @inbounds s += x[i]*y[i]
   end
