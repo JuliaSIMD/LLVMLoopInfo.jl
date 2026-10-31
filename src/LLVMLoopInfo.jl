@@ -10,8 +10,19 @@ function loopinfo(expr, nodes...)
   return expr
 end
 
-map_symbol(s::Symbol, arg)::Tuple{Symbol,Int} =
-  if s === :predicate
+# Julia's own loop markers (handled by Julia's `LowerSIMDLoop` pass) must be
+# passed as plain symbols, not as `(name, value)` nodes.
+is_julia_marker(s::Symbol) = startswith(String(s), "julia.")
+
+map_symbol(s::Symbol, arg) =
+  if s === :ivdep || s === :simd || is_julia_marker(s)
+    if arg === 0 || arg === false
+      return nothing
+    end
+    s === :ivdep && return Symbol("julia.ivdep")
+    s === :simd && return Symbol("julia.simdloop")
+    return s
+  elseif s === :predicate
     if arg === 0 || arg === false
       return Symbol("llvm.loop.predicate.disable"), 1
     end
@@ -50,7 +61,7 @@ map_symbol(s::Symbol, arg)::Tuple{Symbol,Int} =
     return s, something(arg, 1)
   end
 
-function process_arg(arg)::Tuple{Symbol,Int}
+function process_arg(arg)
   arg isa Symbol && (arg = (arg, nothing))
   arg isa Expr && (arg = (arg.args[1], arg.args[2]))
   map_symbol(arg[1], arg[2])
@@ -64,6 +75,14 @@ end
 @loopinfo jam
 @loopinfo jamcount[ = 4]
 @loopinfo interleave[ = 4]
+@loopinfo ivdep
+@loopinfo simd
+
+`ivdep` and `simd` are Julia's own loop markers (`julia.ivdep` and
+`julia.simdloop`), as used by `@simd ivdep`: `ivdep` asserts that loop
+iterations are independent (no loop-carried memory dependencies), `simd`
+allows reassociating floating-point reductions. Other options starting with
+`julia.` (e.g. `var"julia.ivdep"`) are passed through unchanged as well.
 
 See https://llvm.org/docs/TransformMetadata.html#transformation-metadata for information on llvm loopinfo.
 """

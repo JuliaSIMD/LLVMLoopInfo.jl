@@ -151,6 +151,13 @@ to see all the automatically expanded options. Note you can manually specify
 ```
 if an option isn't available. If something you're looking for is missing, please file a PR.
 
+Julia's own loop markers are available as `ivdep` (`julia.ivdep`, iterations are independent, as in
+`@simd ivdep`) and `simd` (`julia.simdloop`, allows reassociating reductions). Any other option whose name
+starts with `julia.` is passed through as is:
+```julia
+  @loopinfo ivdep vectorize unroll=false for ...
+```
+
 Explanation on the above example:
 The CPU I'm benchmarking on has AVX512. By default, LLVM will create two loops:
 1. An unrolled and vectorized loop. It'll unroll by 4x, and use 256 bit vectors (even though the CPU has AVX512). A 256 bit vector can hold 4x `Float64`.
