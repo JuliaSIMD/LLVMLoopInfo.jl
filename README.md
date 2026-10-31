@@ -151,6 +151,19 @@ to see all the automatically expanded options. Note you can manually specify
 ```
 if an option isn't available. If something you're looking for is missing, please file a PR.
 
+[Followup attributes](https://llvm.org/docs/TransformMetadata.html#transformation-metadata)
+set the properties of the loops created by a transformation. They take a single option or a
+tuple of options, e.g. to unroll only after vectorization:
+```julia
+  @loopinfo vectorize unroll=false followup_vectorized=(unrollcount=2,) for ...
+```
+Available are `followup_vectorized`, `followup_epilogue`, `followup_vectorize` (vectorize),
+`followup_unrolled`, `followup_remainder`, `followup_unroll` (unroll), `followup_outer`,
+`followup_inner`, `followup_remainder_outer`, `followup_remainder_inner`, `followup_jam`
+(unroll-and-jam), and `followup_coincident`, `followup_sequential`, `followup_fallback`,
+`followup_distribute` (distribute). Full names such as
+`var"llvm.loop.vectorize.followup_all"=(unroll=false,)` work as well.
+
 Explanation on the above example:
 The CPU I'm benchmarking on has AVX512. By default, LLVM will create two loops:
 1. An unrolled and vectorized loop. It'll unroll by 4x, and use 256 bit vectors (even though the CPU has AVX512). A 256 bit vector can hold 4x `Float64`.
