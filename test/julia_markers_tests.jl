@@ -1,7 +1,8 @@
 using LLVMLoopInfo, InteractiveUtils, Test
 
 function loopinfo_nodes(options)
-  ex = macroexpand(@__MODULE__, Meta.parse("@loopinfo $options for i in 1:2\nend"))
+  ex =
+    macroexpand(@__MODULE__, Meta.parse("@loopinfo $options for i in 1:2\nend"))
   body = ex.args[2]
   return last(body.args).args
 end
@@ -11,8 +12,11 @@ end
   @test loopinfo_nodes("simd") == Any[Symbol("julia.simdloop")]
   @test loopinfo_nodes("var\"julia.ivdep\"") == Any[Symbol("julia.ivdep")]
   @test loopinfo_nodes("ivdep=false") == Any[nothing]
-  @test loopinfo_nodes("simd ivdep unroll=false") ==
-        Any[Symbol("julia.simdloop"), Symbol("julia.ivdep"), (Symbol("llvm.loop.unroll.disable"), 1)]
+  @test loopinfo_nodes("simd ivdep unroll=false") == Any[
+    Symbol("julia.simdloop"),
+    Symbol("julia.ivdep"),
+    (Symbol("llvm.loop.unroll.disable"), 1)
+  ]
 end
 
 function copy_plain!(a, b)
@@ -42,7 +46,9 @@ function sum_simd(x)
   s
 end
 
-llvm_ir(f, tt) = sprint(io -> InteractiveUtils.code_llvm(io, f, tt; raw = true, debuginfo = :none))
+llvm_ir(f, tt) = sprint(
+  io -> InteractiveUtils.code_llvm(io, f, tt; raw = true, debuginfo = :none)
+)
 
 if Base.JLOptions().check_bounds != 1
   @testset "julia.ivdep / julia.simdloop codegen" begin
@@ -51,9 +57,16 @@ if Base.JLOptions().check_bounds != 1
     @test !occursin("llvm.mem.parallel_loop_access", llvm_ir(copy_plain!, T))
     @test occursin("llvm.mem.parallel_loop_access", llvm_ir(copy_ivdep!, T))
     # `julia.simdloop` allows reassociating the reduction, so it gets vectorized
-    @test !occursin(r"fadd reassoc|fadd fast", llvm_ir(sum_plain, Tuple{Vector{Float64}}))
-    @test occursin(r"fadd reassoc|fadd fast", llvm_ir(sum_simd, Tuple{Vector{Float64}}))
-    x = rand(100); y = similar(x)
+    @test !occursin(
+      r"fadd reassoc|fadd fast",
+      llvm_ir(sum_plain, Tuple{Vector{Float64}})
+    )
+    @test occursin(
+      r"fadd reassoc|fadd fast",
+      llvm_ir(sum_simd, Tuple{Vector{Float64}})
+    )
+    x = rand(100)
+    y = similar(x)
     @test copy_ivdep!(y, x) == 2 .* x
     @test sum_simd(x) ≈ sum(x)
   end

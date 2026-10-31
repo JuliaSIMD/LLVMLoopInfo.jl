@@ -78,10 +78,11 @@ end
 @loopinfo ivdep
 @loopinfo simd
 
-`ivdep` and `simd` are Julia's own loop markers (`julia.ivdep` and `julia.simdloop`), as used by
-`@simd ivdep`: `ivdep` asserts that loop iterations are independent (no loop-carried memory
-dependencies), `simd` additionally allows reassociating floating-point reductions. Other options
-starting with `julia.` (e.g. `var"julia.ivdep"`) are passed through unchanged as well.
+`ivdep` and `simd` are Julia's own loop markers (`julia.ivdep` and
+`julia.simdloop`), as used by `@simd ivdep`: `ivdep` asserts that loop
+iterations are independent (no loop-carried memory dependencies), `simd`
+allows reassociating floating-point reductions. Other options starting with
+`julia.` (e.g. `var"julia.ivdep"`) are passed through unchanged as well.
 
 See https://llvm.org/docs/TransformMetadata.html#transformation-metadata for information on llvm loopinfo.
 """
